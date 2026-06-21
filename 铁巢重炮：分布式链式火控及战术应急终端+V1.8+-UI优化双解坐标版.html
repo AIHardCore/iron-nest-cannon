@@ -407,9 +407,9 @@
         // 如果没有填写资产代号，自动用坐标作为代号
         if(!id) {
             if(fmt === 'grid') {
-                id = `坐标:${gridStr}`;
+                id = gridStr;  // 如 G8 3:3
             } else {
-                id = `坐标(${pt.x.toFixed(2)},${pt.y.toFixed(2)})`;
+                id = kmToGridStr(pt.x, pt.y).replace(/\s+\[\d+:\d+\]/, '');  // 转换为网格格式
             }
         }
 
