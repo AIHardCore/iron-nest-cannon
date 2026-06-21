@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: 添加点击目标卡片设为火控锁定目标功能 *)"
+    ]
+  }
+}
