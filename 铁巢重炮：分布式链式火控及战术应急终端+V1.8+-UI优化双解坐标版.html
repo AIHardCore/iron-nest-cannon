@@ -385,33 +385,44 @@
         let type = document.getElementById('manual-type').value;
         let id = document.getElementById('manual-id').value.trim();
         let fmt = document.getElementById('manual-format').value;
-        if(!id) { alert("必须输入资产代号！"); return; }
 
         let pt = null;
+        let gridStr = '';
+
         if(fmt === 'grid') {
             let str = document.getElementById('manual-grid-str').value.trim();
             let match = str.match(/^([A-T]\d+)\s+(\d+):(\d+)/i);
             if(!match) { alert("网格格式不规范！应如: G8 3:3"); return; }
             pt = parseGrid(match[1], match[2], match[3]);
+            gridStr = `${match[1]} ${match[2]}:${match[3]}`;
         } else {
             let kx = parseFloat(document.getElementById('manual-km-x').value);
             let ky = parseFloat(document.getElementById('manual-km-y').value);
             if(!isNaN(kx) && !isNaN(ky)) pt = { x: kx, y: ky };
+            gridStr = kmToGridStr(pt.x, pt.y);
         }
 
         if(!pt) { alert("坐标值非法，无法解算！"); return; }
 
-        manualAssets[id] = pt; 
+        // 如果没有填写资产代号，自动用坐标作为代号
+        if(!id) {
+            if(fmt === 'grid') {
+                id = `坐标:${gridStr}`;
+            } else {
+                id = `坐标(${pt.x.toFixed(2)},${pt.y.toFixed(2)})`;
+            }
+        }
+
+        manualAssets[id] = pt;
         if(type === 'spotter') {
-            let gridStr = kmToGridStr(pt.x, pt.y);
-            let gMatch = gridStr.match(/^([A-T]\d+)\s+\[(\d+):(\d+)\]/);
-            spotters[id] = { x: pt.x, y: pt.y, zone: gMatch[1], sx: gMatch[2], sy: gMatch[3] };
+            let gMatch = gridStr.match(/^([A-T]\d+)\s+\[(\d+):(\d+)\]/) || gridStr.match(/^([A-T]\d+)/);
+            spotters[id] = { x: pt.x, y: pt.y, zone: gMatch[1], sx: gMatch[2] || '5', sy: gMatch[3] || '5' };
         } else if(type === 'ref') {
             refPoints[id] = { clues: [], forcedPt: pt };
         } else {
             targets[id] = { clues: [], forcedPt: pt };
         }
-        
+
         resolveAllCoordinates();
         updateTerminalUI();
     }
