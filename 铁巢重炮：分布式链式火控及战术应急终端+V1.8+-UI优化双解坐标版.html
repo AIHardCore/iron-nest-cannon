@@ -338,11 +338,15 @@
     }
 
     document.getElementById('manual-smart-parse').addEventListener('input', function(e) {
-        let text = e.target.value;
-        // 匹配格式如 "Tgt#9: R3 5:2" 或 "铁巢 - B4 3:5" 或 "Spotter#1 - F7 6:8"
-        const regex = /([A-Za-z0-9_#一-龥]+)\s*[-:]?\s*([A-T]\d+)\s+(\d+)\s*:?\s*(\d+)/i;
-        let match = text.match(regex);
-        if(match) {
+        let text = e.target.value.trim();
+        if (!text) return;
+
+        // 尝试匹配带资产名的格式: "Tgt#9: R3 5:2" 或 "铁巢 - B4 3:5" 或 "Spotter#1 - F7 6:8"
+        const regexWithName = /([A-Za-z0-9_#一-龥]+)\s*[-:]?\s*([A-T]\d+)\s+(\d+)\s*:?\s*(\d+)/i;
+        let match = text.match(regexWithName);
+
+        if (match) {
+            // 有资产名的情况
             document.getElementById('manual-id').value = match[1];
             document.getElementById('manual-grid-str').value = `${match[2]} ${match[3]}:${match[4]}`;
             document.getElementById('manual-format').value = 'grid';
@@ -354,6 +358,29 @@
                 document.getElementById('manual-type').value = 'spotter';
             } else if(lowerId.includes('ref') || lowerId.includes('参考') || lowerId.includes('alpha') || lowerId.includes('beta')) {
                 document.getElementById('manual-type').value = 'ref';
+            }
+        } else {
+            // 只粘贴了网格坐标的情况: "P9 3:3" 或 "7.50, 5.25"
+            const gridOnly = text.match(/^([A-T]\d+)\s+(\d+)\s*:?\s*(\d+)$/i);
+            const kmOnly = text.match(/^([\d.]+)\s*[,\s]\s*([\d.]+)$/);
+
+            if (gridOnly) {
+                // 只有网格坐标，使用坐标本身作为资产名
+                let assetName = `${gridOnly[1]} ${gridOnly[2]}:${gridOnly[3]}`;
+                document.getElementById('manual-id').value = assetName;
+                document.getElementById('manual-grid-str').value = assetName;
+                document.getElementById('manual-format').value = 'grid';
+                toggleManualInputs();
+                document.getElementById('manual-type').value = 'target'; // 默认设为目标
+            } else if (kmOnly) {
+                // 只有公里坐标，使用坐标作为资产名
+                let assetName = `坐标(${parseFloat(kmOnly[1]).toFixed(2)},${parseFloat(kmOnly[2]).toFixed(2)})`;
+                document.getElementById('manual-id').value = assetName;
+                document.getElementById('manual-km-x').value = kmOnly[1];
+                document.getElementById('manual-km-y').value = kmOnly[2];
+                document.getElementById('manual-format').value = 'km';
+                toggleManualInputs();
+                document.getElementById('manual-type').value = 'target';
             }
         }
     });
