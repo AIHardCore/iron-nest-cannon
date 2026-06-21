@@ -339,14 +339,22 @@
 
     document.getElementById('manual-smart-parse').addEventListener('input', function(e) {
         let text = e.target.value;
-        const regex = /([A-Za-z0-9_#]+)[\s\S]*?([A-T]\d+)\s+(\d+):(\d+)/i;
+        // 匹配格式如 "Tgt#9: R3 5:2" 或 "铁巢 - B4 3:5" 或 "Spotter#1 - F7 6:8"
+        const regex = /([A-Za-z0-9_#一-龥]+)\s*[-:]?\s*([A-T]\d+)\s+(\d+)\s*:?\s*(\d+)/i;
         let match = text.match(regex);
         if(match) {
             document.getElementById('manual-id').value = match[1];
             document.getElementById('manual-grid-str').value = `${match[2]} ${match[3]}:${match[4]}`;
             document.getElementById('manual-format').value = 'grid';
             toggleManualInputs();
-            if(match[1].toLowerCase().includes('target') || match[1].toLowerCase().includes('tgt')) document.getElementById('manual-type').value = 'target';
+            let lowerId = match[1].toLowerCase();
+            if(lowerId.includes('target') || lowerId.includes('tgt') || lowerId.includes('hostile')) {
+                document.getElementById('manual-type').value = 'target';
+            } else if(lowerId.includes('spotter') || lowerId.includes('观测')) {
+                document.getElementById('manual-type').value = 'spotter';
+            } else if(lowerId.includes('ref') || lowerId.includes('参考') || lowerId.includes('alpha') || lowerId.includes('beta')) {
+                document.getElementById('manual-type').value = 'ref';
+            }
         }
     });
 
@@ -1075,7 +1083,9 @@
 
     // 点击目标卡片设为火控锁定目标
     function selectFireControlTarget(targetName) {
+        console.log('selectFireControlTarget called with:', targetName);
         let pt = calculatedPositions[targetName];
+        console.log('pt from calculatedPositions:', pt);
         if (!pt) return;
 
         // 处理多解目标
@@ -1140,9 +1150,12 @@
 
     // 目标卡片点击事件委托
     document.getElementById('dashboard-container').addEventListener('click', function(e) {
+        console.log('dashboard clicked', e.target);
         let card = e.target.closest('.node-card.tgt');
-        if (card && card.dataset.target && card.dataset.struck === 'false') {
-            if (e.target.tagName !== 'BUTTON') {
+        console.log('card found:', card);
+        if (card) {
+            console.log('dataset:', card.dataset.target, card.dataset.struck);
+            if (card.dataset.target && e.target.tagName !== 'BUTTON') {
                 selectFireControlTarget(card.dataset.target);
             }
         }
