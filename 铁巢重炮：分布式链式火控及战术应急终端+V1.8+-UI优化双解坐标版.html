@@ -391,10 +391,19 @@
 
         if(fmt === 'grid') {
             let str = document.getElementById('manual-grid-str').value.trim();
-            let match = str.match(/^([A-T]\d+)\s+(\d+):(\d+)/i);
-            if(!match) { alert("网格格式不规范！应如: G8 3:3"); return; }
-            pt = parseGrid(match[1], match[2], match[3]);
-            gridStr = `${match[1]} ${match[2]}:${match[3]}`;
+            // 尝试多种格式: "G8 3:3" 或 "G8,3:3" 或 "G8 3,5" 等
+            let match = str.match(/([A-T]\d+)[,\s]+(\d+)[,\s:](\d+)/i);
+            if(!match) {
+                // 尝试更宽松的格式
+                match = str.match(/([A-T]\d+)\s+(\d+)\s*:\s*(\d+)/i);
+            }
+            if(match) {
+                pt = parseGrid(match[1], match[2], match[3]);
+                gridStr = `${match[1]} ${match[2]}:${match[3]}`;
+            } else {
+                alert("网格格式不规范！应如: G8 3:3");
+                return;
+            }
         } else {
             let kx = parseFloat(document.getElementById('manual-km-x').value);
             let ky = parseFloat(document.getElementById('manual-km-y').value);
