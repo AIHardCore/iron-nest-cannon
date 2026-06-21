@@ -1083,9 +1083,7 @@
 
     // 点击目标卡片设为火控锁定目标
     function selectFireControlTarget(targetName) {
-        console.log('selectFireControlTarget called with:', targetName);
         let pt = calculatedPositions[targetName];
-        console.log('pt from calculatedPositions:', pt);
         if (!pt) return;
 
         // 处理多解目标
@@ -1105,12 +1103,22 @@
     // 直接为指定目标执行火控计算
     function executeFireControlCalculationForTarget(targetName, tPt) {
         let labelGrid = document.getElementById('target-grid-label');
+
+        // 显示目标网格位置
+        labelGrid.innerText = kmToGridStr(tPt.x, tPt.y);
+
         if (!gunPos) {
-            labelGrid.innerText = "--";
+            // 没有阵地时，显示提示但继续显示目标信息
+            ['L', 'R'].forEach(side => {
+                document.getElementById(`${side}-elevation`).innerText = "仰角: --°";
+                document.getElementById(`${side}-azimuth`).innerText = "方位: --°";
+                document.getElementById(`${side}-distance`).innerText = "远距: -- km [未设阵地]";
+                document.getElementById(`${side}-mode-tag`).innerText = "";
+            });
+            drawRadarMap();
             return;
         }
 
-        labelGrid.innerText = kmToGridStr(tPt.x, tPt.y);
         let dx = tPt.x - gunPos.x; let dy = tPt.y - gunPos.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
         let azimuth = 90 - Math.atan2(dy, dx) * (180 / Math.PI);
@@ -1150,14 +1158,9 @@
 
     // 目标卡片点击事件委托
     document.getElementById('dashboard-container').addEventListener('click', function(e) {
-        console.log('dashboard clicked', e.target);
         let card = e.target.closest('.node-card.tgt');
-        console.log('card found:', card);
-        if (card) {
-            console.log('dataset:', card.dataset.target, card.dataset.struck);
-            if (card.dataset.target && e.target.tagName !== 'BUTTON') {
-                selectFireControlTarget(card.dataset.target);
-            }
+        if (card && card.dataset.target && e.target.tagName !== 'BUTTON') {
+            selectFireControlTarget(card.dataset.target);
         }
     });
 
