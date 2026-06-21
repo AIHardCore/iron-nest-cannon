@@ -1103,6 +1103,10 @@
     // 直接为指定目标执行火控计算
     function executeFireControlCalculationForTarget(targetName, tPt) {
         let labelGrid = document.getElementById('target-grid-label');
+        const selector = document.getElementById('target-selector');
+
+        // 设置下拉框选中
+        selector.value = targetName;
 
         // 显示目标网格位置
         labelGrid.innerText = kmToGridStr(tPt.x, tPt.y);
